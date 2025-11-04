@@ -379,9 +379,6 @@ function lazyg {
 # (örneğin Alt+F, '\e[f' veya '\ef') kullanmayı düşünün.
 bind '"\C-f": "zi\n"'
 
-# Starship'i başlat
-eval "$(starship init bash)"
-
 # Zoxide'ı başlat
 #
 # NOT: Fish yapılandırmanızda 'z' ve 'zi' komutlarını 'ls'
@@ -421,3 +418,5 @@ zi() {
 
   return $local_status
 }
+
+[[ $- == *i* ]] && source /usr/share/blesh/ble.sh
