@@ -6,21 +6,23 @@
 # >>> conda initialize (Lazy Load) >>>
 # Conda'yı sadece gerektiğinde yüklemek için
 __conda_setup() {
-    # Conda'nın asıl başlatma komutunu (hook) çalıştır
-    if [ -f /home/melih/anaconda3/bin/conda ]; then
-        eval "$('/home/melih/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-    fi
+  # Conda'nın asıl başlatma komutunu (hook) çalıştır
+  if [ -f /home/melih/anaconda3/bin/conda ]; then
+    eval "$('/home/melih/anaconda3/bin/conda' 'shell.bash' 'hook' 2>/dev/null)"
+  fi
 }
 
 conda() {
-    # Bu geçici fonksiyonu sil
-    unset -f conda
-    # Asıl conda kurulumunu yap
-    __conda_setup
-    # Şimdi gerçek conda komutunu kullanıcının argümanları ile çalıştır
-    command conda "$@"
+  # Bu geçici fonksiyonu sil
+  unset -f conda
+  # Asıl conda kurulumunu yap
+  __conda_setup
+  # Şimdi gerçek conda komutunu kullanıcının argümanları ile çalıştır
+  command conda "$@"
 }
 # <<< conda initialize <<<
+
+fastfetch
 
 # --- Değişken Tanımlamaları ---
 export CHROME_EXECUTABLE="/usr/bin/google-chrome-stable"
@@ -38,15 +40,15 @@ stty -ixon
 # --- PATH Yönetimi ---
 # PATH'e yinelenen kayıtları eklememek için bir yardımcı fonksiyon
 add_to_path_prepend() {
-    if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
-        export PATH="$1:$PATH" # Başa ekle
-    fi
+  if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
+    export PATH="$1:$PATH" # Başa ekle
+  fi
 }
 
 add_to_path_append() {
-    if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
-        export PATH="$PATH:$1" # Sona ekle
-    fi
+  if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
+    export PATH="$PATH:$1" # Sona ekle
+  fi
 }
 
 add_to_path_prepend "/home/melih/FlutterEnv/flutter/bin"
@@ -67,9 +69,9 @@ alias vis='nvim "+set si"'
 
 # grep için ripgrep (rg) kontrolü
 if command -v rg &>/dev/null; then
-    alias grep='rg'
+  alias grep='rg'
 else
-    alias grep='/usr/bin/grep --color=auto'
+  alias grep='/usr/bin/grep --color=auto'
 fi
 
 # config.bash dosyasını düzenle (efishc -> ebashc olarak değiştirildi)
@@ -105,7 +107,7 @@ alias bd='cd "$OLDPWD"' # Fish'teki '$dirprev' yerine Bash'te '$OLDPWD' kullanı
 alias rmd='/bin/rm --recursive --force --verbose'
 
 # eza (ls alternatifi) için alias'lar
-alias ls='eza -l --icons --git --header'
+alias ls='eza -la --icons --git --header'
 alias l='eza --icons --git'
 alias ll='eza -l --icons --git --header'
 alias la='eza -la --icons --git --header'
@@ -159,7 +161,7 @@ alias lanm="systemctl --user restart lan-mouse"
 
 # cat'i bat olarak kullanmak için (eğer yüklüyse)
 if command -v bat &>/dev/null; then
-    alias cat='bat'
+  alias cat='bat'
 fi
 
 #######################################################
@@ -170,36 +172,36 @@ fi
 
 # Arşiv çıkarma fonksiyonu
 function extract {
-    for archive in "$@"; do
-        if [ -f "$archive" ]; then
-            case "$archive" in
-                *.tar.bz2|*.tbz2)   tar xvjf "$archive"  ;;
-                *.tar.gz|*.tgz)     tar xvzf "$archive"  ;;
-                *.bz2)              bunzip2 "$archive"   ;;
-                *.rar)              unrar x "$archive"   ;;
-                *.gz)               gunzip "$archive"    ;;
-                *.tar)              tar xvf "$archive"   ;;
-                *.zip)              unzip "$archive"     ;;
-                *.Z)                uncompress "$archive" ;;
-                *.7z)               7z x "$archive"      ;;
-                *)                  echo "Bilinmeyen arşiv türü: '$archive'" ;;
-            esac
-        else
-            echo "'$archive' geçerli bir dosya değil!"
-        fi
-    done
+  for archive in "$@"; do
+    if [ -f "$archive" ]; then
+      case "$archive" in
+      *.tar.bz2 | *.tbz2) tar xvjf "$archive" ;;
+      *.tar.gz | *.tgz) tar xvzf "$archive" ;;
+      *.bz2) bunzip2 "$archive" ;;
+      *.rar) unrar x "$archive" ;;
+      *.gz) gunzip "$archive" ;;
+      *.tar) tar xvf "$archive" ;;
+      *.zip) unzip "$archive" ;;
+      *.Z) uncompress "$archive" ;;
+      *.7z) 7z x "$archive" ;;
+      *) echo "Bilinmeyen arşiv türü: '$archive'" ;;
+      esac
+    else
+      echo "'$archive' geçerli bir dosya değil!"
+    fi
+  done
 }
 
 # Dosya içinde metin arama
 function ftext {
-    grep -iIHrn --color=always "$1" . | less -r
+  grep -iIHrn --color=always "$1" . | less -r
 }
 
 # İlerleme çubuğu ile dosya kopyalama
 function cpp {
-    local total_size
-    total_size=$(stat -c '%s' "$1")
-    strace -q -ewrite cp -- "$1" "$2" 2>&1 |
+  local total_size
+  total_size=$(stat -c '%s' "$1")
+  strace -q -ewrite cp -- "$1" "$2" 2>&1 |
     awk -v total_size="$total_size" '{
             count += $NF
             if (count % 10 == 0) {
@@ -216,179 +218,152 @@ function cpp {
 
 # Kopyala ve o dizine git
 function cpg {
-    if [ -d "$2" ]; then
-        cp "$1" "$2" && cd "$2"
-    else
-        cp "$1" "$2"
-    fi
+  if [ -d "$2" ]; then
+    cp "$1" "$2" && cd "$2"
+  else
+    cp "$1" "$2"
+  fi
 }
 
 # Taşı ve o dizine git
 function mvg {
-    if [ -d "$2" ]; then
-        mv "$1" "$2" && cd "$2"
-    else
-        mv "$1" "$2"
-    fi
+  if [ -d "$2" ]; then
+    mv "$1" "$2" && cd "$2"
+  else
+    mv "$1" "$2"
+  fi
 }
 
 # Dizin oluştur ve içine gir
 function mkdirg {
-    mkdir -p "$1" && cd "$1"
+  mkdir -p "$1" && cd "$1"
 }
 
 # Belirtilen sayıda yukarı dizine çık
 function up {
-    # ${1:-1} -> $1 varsa onu, yoksa 1'i kullanır
-    local limit=${1:-1}
-    local path=""
-    for i in $(seq 1 "$limit"); do
-        path="../$path"
-    done
-    cd "$path"
+  # ${1:-1} -> $1 varsa onu, yoksa 1'i kullanır
+  local limit=${1:-1}
+  local path=""
+  for i in $(seq 1 "$limit"); do
+    path="../$path"
+  done
+  cd "$path"
 }
 
 # cd komutundan sonra ls çalıştır
 function cd {
-    builtin cd "$@" && ls
+  builtin cd "$@" && ls
 }
 
 # Çalışılan dizinin son iki bölümünü göster
 function pwdtail {
-    pwd | awk -F/ '{nlast = NF -1;print $nlast"/"$NF}'
+  pwd | awk -F/ '{nlast = NF -1;print $nlast"/"$NF}'
 }
 
 # Linux dağıtımını bul
 function distribution {
-    local dtype="unknown"
-    if [ -r /etc/os-release ]; then
-        # 'source' yerine '. ' kullanmak daha güvenlidir
-        . /etc/os-release
-        case "$ID" in
-            fedora|rhel|centos)     dtype="redhat"  ;;
-            sles|"opensuse"*)       dtype="suse"    ;;
-            ubuntu|debian)          dtype="debian"  ;;
-            gentoo)                 dtype="gentoo"  ;;
-            arch|manjaro)           dtype="arch"    ;;
-            slackware)              dtype="slackware" ;;
-            *)
-                # Fish'teki 'set -q ID_LIKE' -> Bash'te '[ -n "$ID_LIKE" ]'
-                if [ -n "$ID_LIKE" ]; then
-                    case "$ID_LIKE" in
-                        *fedora*|*rhel*|*centos*)    dtype="redhat"  ;;
-                        *sles*|*opensuse*)           dtype="suse"    ;;
-                        *ubuntu*|*debian*)          dtype="debian"  ;;
-                        *gentoo*)                   dtype="gentoo"  ;;
-                        *arch*)                     dtype="arch"    ;;
-                        *slackware*)                dtype="slackware" ;;
-                    esac
-                fi
-                ;;
+  local dtype="unknown"
+  if [ -r /etc/os-release ]; then
+    # 'source' yerine '. ' kullanmak daha güvenlidir
+    . /etc/os-release
+    case "$ID" in
+    fedora | rhel | centos) dtype="redhat" ;;
+    sles | "opensuse"*) dtype="suse" ;;
+    ubuntu | debian) dtype="debian" ;;
+    gentoo) dtype="gentoo" ;;
+    arch | manjaro) dtype="arch" ;;
+    slackware) dtype="slackware" ;;
+    *)
+      # Fish'teki 'set -q ID_LIKE' -> Bash'te '[ -n "$ID_LIKE" ]'
+      if [ -n "$ID_LIKE" ]; then
+        case "$ID_LIKE" in
+        *fedora* | *rhel* | *centos*) dtype="redhat" ;;
+        *sles* | *opensuse*) dtype="suse" ;;
+        *ubuntu* | *debian*) dtype="debian" ;;
+        *gentoo*) dtype="gentoo" ;;
+        *arch*) dtype="arch" ;;
+        *slackware*) dtype="slackware" ;;
         esac
-    fi
-    echo "$dtype"
+      fi
+      ;;
+    esac
+  fi
+  echo "$dtype"
 }
 
 # İşletim sistemi versiyonunu göster
 function ver {
-    local dtype
-    dtype=$(distribution)
-    case "$dtype" in
-        redhat)
-            if [ -s /etc/redhat-release ]; then
-                cat /etc/redhat-release
-            else
-                cat /etc/issue
-            fi
-            uname -a
-            ;;
-        suse)       cat /etc/SuSE-release ;;
-        debian)     lsb_release -a ;;
-        gentoo)     cat /etc/gentoo-release ;;
-        arch)       cat /etc/os-release ;;
-        slackware)  cat /etc/slackware-version ;;
-        *)
-            if [ -s /etc/issue ]; then
-                cat /etc/issue
-            else
-                echo "Hata: Bilinmeyen dağıtım"
-                return 1
-            fi
-            ;;
-    esac
+  local dtype
+  dtype=$(distribution)
+  case "$dtype" in
+  redhat)
+    if [ -s /etc/redhat-release ]; then
+      cat /etc/redhat-release
+    else
+      cat /etc/issue
+    fi
+    uname -a
+    ;;
+  suse) cat /etc/SuSE-release ;;
+  debian) lsb_release -a ;;
+  gentoo) cat /etc/gentoo-release ;;
+  arch) cat /etc/os-release ;;
+  slackware) cat /etc/slackware-version ;;
+  *)
+    if [ -s /etc/issue ]; then
+      cat /etc/issue
+    else
+      echo "Hata: Bilinmeyen dağıtım"
+      return 1
+    fi
+    ;;
+  esac
 }
 
 # Gerekli destek dosyalarını kur
 function install_bashrc_support {
-    local dtype
-    dtype=$(distribution)
-    local FASTFETCH_URL
-    case "$dtype" in
-        redhat)     sudo yum install multitail tree zoxide trash-cli fzf fastfetch ;;
-        suse)       sudo zypper install multitail tree zoxide trash-cli fzf fastfetch ;;
-        debian)
-            sudo apt-get install multitail tree zoxide trash-cli fzf
-            FASTFETCH_URL=$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | grep "browser_download_url.*linux-amd64.deb" | cut -d '"' -f 4)
-            curl -sL "$FASTFETCH_URL" -o /tmp/fastfetch_latest_amd64.deb
-            sudo apt-get install /tmp/fastfetch_latest_amd64.deb
-            ;;
-        arch)       sudo paru -S multitail tree zoxide trash-cli fzf fastfetch ;;
-        slackware)  echo "Slackware için kurulum desteği yok" ;;
-        *)          echo "Bilinmeyen dağıtım" ;;
-    esac
+  local dtype
+  dtype=$(distribution)
+  local FASTFETCH_URL
+  case "$dtype" in
+  redhat) sudo yum install multitail tree zoxide trash-cli fzf fastfetch ;;
+  suse) sudo zypper install multitail tree zoxide trash-cli fzf fastfetch ;;
+  debian)
+    sudo apt-get install multitail tree zoxide trash-cli fzf
+    FASTFETCH_URL=$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | grep "browser_download_url.*linux-amd64.deb" | cut -d '"' -f 4)
+    curl -sL "$FASTFETCH_URL" -o /tmp/fastfetch_latest_amd64.deb
+    sudo apt-get install /tmp/fastfetch_latest_amd64.deb
+    ;;
+  arch) sudo paru -S multitail tree zoxide trash-cli fzf fastfetch ;;
+  slackware) echo "Slackware için kurulum desteği yok" ;;
+  *) echo "Bilinmeyen dağıtım" ;;
+  esac
 }
 
 # IP adresi bulma
 alias whatismyip='whatsmyip'
 function whatsmyip {
-    echo -n "Dahili IP: "
-    if command -v ip &>/dev/null; then
-        ip addr show wlan0 | grep "inet " | awk '{print $2}' | cut -d/ -f1
-    else
-        ifconfig wlan0 | grep "inet " | awk '{print $2}'
-    fi
-    
-    echo -n "Harici IP: "
-    curl -4 ifconfig.me
+  echo -n "Dahili IP: "
+  if command -v ip &>/dev/null; then
+    ip addr show wlan0 | grep "inet " | awk '{print $2}' | cut -d/ -f1
+  else
+    ifconfig wlan0 | grep "inet " | awk '{print $2}'
+  fi
+
+  echo -n "Harici IP: "
+  curl -4 ifconfig.me
 }
 
 # GitHub Fonksiyonları
 function gcom {
-    git add .
-    git commit -m "$1"
+  git add .
+  git commit -m "$1"
 }
 
 function lazyg {
-    git add .
-    git commit -m "$1"
-    git push
-}
-
-# Hastebin'e yükleme
-function hb {
-    # Fish'teki 'count $argv -eq 0' -> Bash'te '$# -eq 0'
-    if [ $# -eq 0 ]; then
-        echo "Dosya yolu belirtilmedi."
-        return 1
-    fi
-    # Fish'teki 'not test -f' -> Bash'te '! -f'
-    if [ ! -f "$1" ]; then
-        echo "Dosya yolu mevcut değil."
-        return 1
-    end
-
-    local uri="http://bin.christitus.com/documents"
-    local response
-    response=$(curl -s -X POST -d @"$1" "$uri")
-    
-    # Fish'teki '$status' -> Bash'te '$?' (son komutun çıkış kodu)
-    if [ $? -eq 0 ]; then
-        local hasteKey
-        hasteKey=$(echo "$response" | jq -r '.key')
-        echo "http://bin.christitus.com/$hasteKey"
-    else
-        echo "Belge yüklenemedi."
-    fi
+  git add .
+  git commit -m "$1"
+  git push
 }
 
 #######################################################
@@ -416,15 +391,33 @@ eval "$(starship init bash)"
 # hem de 'z' veya 'zi' kullandıktan sonra otomatik 'ls'
 # çalıştırılmasını sağlar. (Source 47-49'daki kod bloklarının
 # yerine geçer).
-eval "$(zoxide init bash --hook ls)"
+eval "$(zoxide init bash)"
 
-# TTY1'de isek ve DISPLAY yoksa, grafik arayüzü başlat
-#
-# NOT: Bu kod bloğu ~/.bashrc yerine ~/.bash_profile veya ~/.profile
-# dosyasına ait olmalıdır. ~/.bashrc, her yeni terminal
-# açıldığında çalışır, bu da istenmeyen 'startx' denemelerine
-NAMESPACE:
-# yol açabilir.
-if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
-    exec startx
-fi
+z() {
+  # Orijinal zoxide 'z' fonksiyonunu çağır
+  __zoxide_z "$@"
+  # Çıkış kodunu (başarı durumunu) al
+  local_status=$?
+
+  # Eğer 'cd' işlemi başarılı olduysa (çıkış kodu 0 ise) 'ls' çalıştır
+  if [ $local_status -eq 0 ]; then
+    # ls (Bu komut, sizin 'eza ...' olarak tanımladığınız alias'ı
+    # otomatik olarak kullanacaktır)
+    ls
+  fi
+
+  # Orijinal çıkış kodunu koru (hata durumlarını iletmek için önemli)
+  return $local_status
+}
+
+zi() {
+  # Orijinal zoxide 'zi' (interaktif) fonksiyonunu çağır
+  __zoxide_zi "$@"
+  local_status=$?
+
+  if [ $local_status -eq 0 ]; then
+    ls
+  fi
+
+  return $local_status
+}
