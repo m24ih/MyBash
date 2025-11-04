@@ -1,134 +1,87 @@
-#!/usr/bin/env bash
-iatest=$(expr index "$-" i)
-#######################################################
-# SOURCED ALIAS'S AND SCRIPTS BY zachbrowne.me
-#######################################################
-if [ -f /usr/bin/fastfetch ]; then
-  fastfetch
-fi
+#!/bin/bash
+# Bu dosya, ~/.bashrc veya ~/.bash_profile dosyasına eklenebilir.
 
-# Source global definitions
-if [ -f /etc/bashrc ]; then
-  . /etc/bashrc
-fi
+# source /usr/share/cachyos-fish-config/cachyos-config.fish
 
-# Enable bash programmable completion features in interactive shells
-if [ -f /usr/share/bash-completion/bash_completion ]; then
-  . /usr/share/bash-completion/bash_completion
-elif [ -f /etc/bash_completion ]; then
-  . /etc/bash_completion
-fi
+# >>> conda initialize (Lazy Load) >>>
+# Conda'yı sadece gerektiğinde yüklemek için
+__conda_setup() {
+    # Conda'nın asıl başlatma komutunu (hook) çalıştır
+    if [ -f /home/melih/anaconda3/bin/conda ]; then
+        eval "$('/home/melih/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+    fi
+}
 
-#######################################################
-# EXPORTS
-#######################################################
+conda() {
+    # Bu geçici fonksiyonu sil
+    unset -f conda
+    # Asıl conda kurulumunu yap
+    __conda_setup
+    # Şimdi gerçek conda komutunu kullanıcının argümanları ile çalıştır
+    command conda "$@"
+}
+# <<< conda initialize <<<
 
-# Disable the bell
-if [[ $iatest -gt 0 ]]; then bind "set bell-style visible"; fi
-
-# Expand the history size
-export HISTFILESIZE=10000
-export HISTSIZE=500
-export HISTTIMEFORMAT="%F %T" # add timestamp to history
-
-# Don't put duplicate lines in the history and do not add lines that start with a space
-export HISTCONTROL=erasedups:ignoredups:ignorespace
-
-# Check the window size after each command and, if necessary, update the values of LINES and COLUMNS
-shopt -s checkwinsize
-
-# Causes bash to append to history instead of overwriting it so if you start a new terminal, you have old session history
-shopt -s histappend
-PROMPT_COMMAND='history -a'
-
-# set up XDG folders
+# --- Değişken Tanımlamaları ---
+export CHROME_EXECUTABLE="/usr/bin/google-chrome-stable"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_STATE_HOME="$HOME/.local/state"
 export XDG_CACHE_HOME="$HOME/.cache"
-
-# Seeing as other scripts will use it might as well export it
 export LINUXTOOLBOXDIR="$HOME/linuxtoolbox"
+export EDITOR="nvim"
+export VISUAL="nvim"
 
-# Allow ctrl-S for history navigation (with ctrl-R)
-[[ $- == *i* ]] && stty -ixon
+# Akış kontrolünü (Ctrl+S/Ctrl+Q) devre dışı bırakır
+stty -ixon
 
-# Ignore case on auto-completion
-# Note: bind used instead of sticking these in .inputrc
-if [[ $iatest -gt 0 ]]; then bind "set completion-ignore-case on"; fi
+# --- PATH Yönetimi ---
+# PATH'e yinelenen kayıtları eklememek için bir yardımcı fonksiyon
+add_to_path_prepend() {
+    if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
+        export PATH="$1:$PATH" # Başa ekle
+    fi
+}
 
-# Show auto-completion list automatically, without double tab
-if [[ $iatest -gt 0 ]]; then bind "set show-all-if-ambiguous On"; fi
+add_to_path_append() {
+    if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
+        export PATH="$PATH:$1" # Sona ekle
+    fi
+}
 
-# Set the default editor
-export EDITOR=nvim
-export VISUAL=nvim
+add_to_path_prepend "/home/melih/FlutterEnv/flutter/bin"
+add_to_path_append "$HOME/.local/bin"
+add_to_path_append "$HOME/.cargo/bin"
+add_to_path_append "/var/lib/flatpak/exports/bin"
+# Orijinal dosyada 'fish_add_path -g "/.local/share/flatpak/exports/bin"' vardı.
+# Bunun '$HOME/.local/share/...' olması gerektiği varsayıldı.
+add_to_path_append "$HOME/.local/share/flatpak/exports/bin"
+
+# --- Alias (Kısayol) Tanımlamaları ---
 alias spico='sudo pico'
 alias snano='sudo nano'
 alias vim='nvim'
+alias vi='nvim'
+alias svi='sudo nvim'
+alias vis='nvim "+set si"'
 
-# To have colors for ls and all grep commands such as grep, egrep and zgrep
-export CLICOLOR=1
-export LS_COLORS='no=00:fi=00:di=00;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.ogg=01;35:*.mp3=01;35:*.wav=01;35:*.xml=00;31:'
-#export GREP_OPTIONS='--color=auto' #deprecated
-
-# Check if ripgrep is installed
+# grep için ripgrep (rg) kontrolü
 if command -v rg &>/dev/null; then
-  # Alias grep to rg if ripgrep is installed
-  alias grep='rg'
+    alias grep='rg'
 else
-  # Alias grep to /usr/bin/grep with GREP_OPTIONS if ripgrep is not installed
-  alias grep="/usr/bin/grep $GREP_OPTIONS"
+    alias grep='/usr/bin/grep --color=auto'
 fi
-unset GREP_OPTIONS
 
-# Color for manpages in less makes manpages a little easier to read
-export LESS_TERMCAP_mb=$'\E[01;31m'
-export LESS_TERMCAP_md=$'\E[01;31m'
-export LESS_TERMCAP_me=$'\E[0m'
-export LESS_TERMCAP_se=$'\E[0m'
-export LESS_TERMCAP_so=$'\E[01;44;33m'
-export LESS_TERMCAP_ue=$'\E[0m'
-export LESS_TERMCAP_us=$'\E[01;32m'
+# config.bash dosyasını düzenle (efishc -> ebashc olarak değiştirildi)
+alias ebashc='nvim ~/.bashrc'
 
-#######################################################
-# MACHINE SPECIFIC ALIAS'S
-#######################################################
-
-# Alias's for SSH
-# alias SERVERNAME='ssh YOURWEBSITE.com -l USERNAME -p PORTNUMBERHERE'
-
-# Alias's to change the directory
-alias web='cd /var/www/html'
-
-# Alias's to mount ISO files
-# mount -o loop /home/NAMEOFISO.iso /home/ISOMOUNTDIR/
-# umount /home/NAMEOFISO.iso
-# (Both commands done as root only.)
-
-#######################################################
-# GENERAL ALIAS'S
-#######################################################
-# To temporarily bypass an alias, we precede the command with a \
-# EG: the ls command is aliased, but to use the normal ls command you would type \ls
-
-# Add an "alert" alias for long running commands.  Use like so:
-#   sleep 10; alert
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
-
-# Edit this .bashrc file
-alias ebrc='edit ~/.bashrc'
-
-# Show help for this .bashrc file
-alias hlp='less ~/.bashrc_help'
-
-# alias to show the date
+# Tarih alias'ı
 alias da='date "+%Y-%m-%d %A %T %Z"'
 
-# Alias's to modified commands
+# Değiştirilmiş komutlar
 alias cp='cp -i'
 alias mv='mv -i'
-alias rm='trash -v'
+alias rm='trash -v' # Çöp kutusuna taşı
 alias mkdir='mkdir -p'
 alias ps='ps auxf'
 alias ping='ping -c 10'
@@ -137,59 +90,35 @@ alias cls='clear'
 alias apt-get='sudo apt-get'
 alias multitail='multitail --no-repeat -c'
 alias freshclam='sudo freshclam'
-alias vi='nvim'
-alias svi='sudo vi'
-alias vis='nvim "+set si"'
 alias yayf="yay -Slq | fzf --multi --preview 'yay -Sii {1}' --preview-window=down:75% | xargs -ro yay -S"
 
-# Change directory aliases
+# Dizin değiştirme alias'ları
 alias home='cd ~'
 alias cd..='cd ..'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias .....='cd ../../../..'
+alias bd='cd "$OLDPWD"' # Fish'teki '$dirprev' yerine Bash'te '$OLDPWD' kullanılır
 
-# cd into the old directory
-alias bd='cd "$OLDPWD"'
+# Dizin ve içeriğini sil (rm alias'ını bypass eder)
+alias rmd='/bin/rm --recursive --force --verbose'
 
-# Remove a directory and all files
-alias rmd='/bin/rm  --recursive --force --verbose '
+# eza (ls alternatifi) için alias'lar
+alias ls='eza -l --icons --git --header'
+alias l='eza --icons --git'
+alias ll='eza -l --icons --git --header'
+alias la='eza -la --icons --git --header'
+alias l.='eza -laD --icons --git --header'
+alias lt='eza -la --sort=modified --reverse --icons --git --header'
+alias lS='eza -la --sort=size --reverse --icons --git --header'
+alias lx='eza -la --sort=ext --icons --git --header'
+alias T='eza --tree --level=3 --icons --git'
+alias Ta='eza --tree --level=3 -a --icons --git'
+alias lf='eza -l --icons --git --no-dir'
+alias ldir='eza -lD --icons --git'
 
-# eza (ls alternatifi) için gelişmiş alias'lar
-alias l='eza --icons --git'                                         # Daha kısa temel komut
-alias ls='eza -l --icons --git --header'                            # Uzun liste formatı (gizli dosyalar olmadan)
-alias ll='eza -l --icons --git --header'                            # Uzun liste formatı (gizli dosyalar olmadan)
-alias la='eza -la --icons --git --header'                           # Uzun liste formatı (gizli dosyalar dahil)
-alias l.='eza -laD --icons --git --header'                          # Sadece gizli dosyaları ve klasörleri listele
-alias lt='eza -la --sort=modified --reverse --icons --git --header' # Tarihe göre sırala (en yeni en altta)
-alias lS='eza -la --sort=size --reverse --icons --git --header'     # Boyuta göre sırala (en büyük en altta)
-alias lx='eza -la --sort=ext --icons --git --header'                # Dosya uzantısına göre sırala
-alias T='eza --tree --level=3 --icons --git'                        # Ağaç görünümü (3 seviye derinliğinde)
-alias Ta='eza --tree --level=3 -a --icons --git'                    # Ağaç görünümü (gizli dosyalar dahil)
-alias lf='eza -l --icons --git --no-dir'                            # Sadece dosyaları listele (klasörler hariç)
-alias ldir='eza -lD --icons --git'                                  # Sadece klasörleri listele
-
-# Alias's for multiple directory listing commands
-#alias la='ls -Alh'                # show hidden files
-#alias ls='ls -aFh --color=always' # add colors and file type extensions
-#alias lx='ls -lXBh'               # sort by extension
-#alias lk='ls -lSrh'               # sort by size
-#alias lc='ls -ltcrh'              # sort by change time
-#alias lu='ls -lturh'              # sort by access time
-#alias lr='ls -lRh'                # recursive ls
-#alias lt='ls -ltrh'               # sort by date
-#alias lm='ls -alh |more'          # pipe through 'more'
-#alias lw='ls -xAh'                # wide listing format
-#alias ll='ls -Fls'                # long listing format
-#alias labc='ls -lap'              # alphabetical sort
-#alias lf="ls -l | egrep -v '^d'"  # files only
-#alias ldir="ls -l | egrep '^d'"   # directories only
-#alias lla='ls -Al'                # List and Hidden Files
-#alias las='ls -A'                 # Hidden Files
-#alias lls='ls -l'                 # List
-
-# alias chmod commands
+# chmod alias'ları
 alias mx='chmod a+x'
 alias 000='chmod -R 000'
 alias 644='chmod -R 644'
@@ -197,471 +126,305 @@ alias 666='chmod -R 666'
 alias 755='chmod -R 755'
 alias 777='chmod -R 777'
 
-# Search command line history
-alias h="history | grep "
-
-# Search running processes
-alias p="ps aux | grep "
+# Arama alias'ları
+alias h='history | grep'
+alias p="ps aux | grep"
 alias topcpu="/bin/ps -eo pcpu,pid,user,args | sort -k 1 -r | head -10"
+alias f="find . | grep"
 
-# Search files in the current folder
-alias f="find . | grep "
-
-# Count all files (recursively) in the current folder
-alias countfiles="for t in files links directories; do echo \`find . -type \${t:0:1} | wc -l\` \$t; done 2> /dev/null"
-
-# To see if a command is aliased, a file, or a built-in command
+# Diğer alias'lar
 alias checkcommand="type -t"
-
-# Show open ports
 alias openports='netstat -nape --inet'
-
-# Alias's for safe and forced reboots
 alias rebootsafe='sudo shutdown -r now'
 alias rebootforce='sudo shutdown -r -n now'
-
-# Alias's to show disk space and space used in a folder
-alias diskspace="du -S | sort -n -r |more"
+alias diskspace="du -S | sort -n -r | more"
 alias folders='du -h --max-depth=1'
 alias folderssort='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'
 alias tree='tree -CAhF --dirsfirst'
 alias treed='tree -CAFd'
 alias mountedinfo='df -hT'
-
-# Alias's for archives
 alias mktar='tar -cvf'
 alias mkbz2='tar -cvjf'
 alias mkgz='tar -cvzf'
 alias untar='tar -xvf'
 alias unbz2='tar -xvjf'
 alias ungz='tar -xvzf'
-
-# Show all logs in /var/log
-alias logs="sudo find /var/log -type f -exec file {} \; | grep 'text' | cut -d' ' -f1 | sed -e's/:$//g' | grep -v '[0-9]$' | xargs tail -f"
-
-# SHA1
 alias sha1='openssl sha1'
-
+#alias logs="sudo find /var/log -type f -exec file {} \; | grep 'text' | cut -d' ' -f1 | sed -e's/:$//g' | grep -v '[0-9]\$' | xargs tail -f"
 alias clickpaste='sleep 3; xdotool type "$(xclip -o -selection clipboard)"'
-
-# KITTY - alias to be able to use kitty features when connecting to remote servers(e.g use tmux on remote server)
-
 alias kssh="kitty +kitten ssh"
-
-# alias to cleanup unused docker containers, images, networks, and volumes
-
-alias docker-clean=' \
-  docker container prune -f ; \
-  docker image prune -f ; \
-  docker network prune -f ; \
-  docker volume prune -f '
-
-#######################################################
-# SPECIAL FUNCTIONS
-#######################################################
-# Extracts any archive(s) (if unp isn't installed)
-extract() {
-  for archive in "$@"; do
-    if [ -f "$archive" ]; then
-      case $archive in
-      *.tar.bz2) tar xvjf $archive ;;
-      *.tar.gz) tar xvzf $archive ;;
-      *.bz2) bunzip2 $archive ;;
-      *.rar) rar x $archive ;;
-      *.gz) gunzip $archive ;;
-      *.tar) tar xvf $archive ;;
-      *.tbz2) tar xvjf $archive ;;
-      *.tgz) tar xvzf $archive ;;
-      *.zip) unzip $archive ;;
-      *.Z) uncompress $archive ;;
-      *.7z) 7z x $archive ;;
-      *) echo "don't know how to extract '$archive'..." ;;
-      esac
-    else
-      echo "'$archive' is not a valid file!"
-    fi
-  done
-}
-
-# Searches for text in all files in the current folder
-ftext() {
-  # -i case-insensitive
-  # -I ignore binary files
-  # -H causes filename to be printed
-  # -r recursive search
-  # -n causes line number to be printed
-  # optional: -F treat search term as a literal, not a regular expression
-  # optional: -l only print filenames and not the matching lines ex. grep -irl "$1" *
-  grep -iIHrn --color=always "$1" . | less -r
-}
-
-# Copy file with a progress bar
-cpp() {
-  set -e
-  strace -q -ewrite cp -- "${1}" "${2}" 2>&1 |
-    awk '{
-        count += $NF
-        if (count % 10 == 0) {
-            percent = count / total_size * 100
-            printf "%3d%% [", percent
-            for (i=0;i<=percent;i++)
-                printf "="
-            printf ">"
-            for (i=percent;i<100;i++)
-                printf " "
-            printf "]\r"
-        }
-    }
-    END { print "" }' total_size="$(stat -c '%s' "${1}")" count=0
-}
-
-# Copy and go to the directory
-cpg() {
-  if [ -d "$2" ]; then
-    cp "$1" "$2" && cd "$2"
-  else
-    cp "$1" "$2"
-  fi
-}
-
-# Move and go to the directory
-mvg() {
-  if [ -d "$2" ]; then
-    mv "$1" "$2" && cd "$2"
-  else
-    mv "$1" "$2"
-  fi
-}
-
-# Create and go to the directory
-mkdirg() {
-  mkdir -p "$1"
-  cd "$1"
-}
-
-# Goes up a specified number of directories  (i.e. up 4)
-up() {
-  local d=""
-  limit=$1
-  for ((i = 1; i <= limit; i++)); do
-    d=$d/..
-  done
-  d=$(echo $d | sed 's/^\///')
-  if [ -z "$d" ]; then
-    d=..
-  fi
-  cd $d
-}
-
-# Automatically do an ls after each cd, z, or zoxide
-cd() {
-  if [ -n "$1" ]; then
-    builtin cd "$@" && ls
-  else
-    builtin cd ~ && ls
-  fi
-}
-
-# Returns the last 2 fields of the working directory
-pwdtail() {
-  pwd | awk -F/ '{nlast = NF -1;print $nlast"/"$NF}'
-}
-
-# Show the current distribution
-distribution() {
-  local dtype="unknown" # Default to unknown
-
-  # Use /etc/os-release for modern distro identification
-  if [ -r /etc/os-release ]; then
-    source /etc/os-release
-    case $ID in
-    fedora | rhel | centos)
-      dtype="redhat"
-      ;;
-    sles | opensuse*)
-      dtype="suse"
-      ;;
-    ubuntu | debian)
-      dtype="debian"
-      ;;
-    gentoo)
-      dtype="gentoo"
-      ;;
-    arch | manjaro)
-      dtype="arch"
-      ;;
-    slackware)
-      dtype="slackware"
-      ;;
-    *)
-      # Check ID_LIKE only if dtype is still unknown
-      if [ -n "$ID_LIKE" ]; then
-        case $ID_LIKE in
-        *fedora* | *rhel* | *centos*)
-          dtype="redhat"
-          ;;
-        *sles* | *opensuse*)
-          dtype="suse"
-          ;;
-        *ubuntu* | *debian*)
-          dtype="debian"
-          ;;
-        *gentoo*)
-          dtype="gentoo"
-          ;;
-        *arch*)
-          dtype="arch"
-          ;;
-        *slackware*)
-          dtype="slackware"
-          ;;
-        esac
-      fi
-
-      # If ID or ID_LIKE is not recognized, keep dtype as unknown
-      ;;
-    esac
-  fi
-
-  echo $dtype
-}
-
-DISTRIBUTION=$(distribution)
-if [ "$DISTRIBUTION" = "redhat" ] || [ "$DISTRIBUTION" = "arch" ]; then
-  alias cat='bat'
-else
-  alias cat='batcat'
-fi
-
-# Show the current version of the operating system
-ver() {
-  local dtype
-  dtype=$(distribution)
-
-  case $dtype in
-  "redhat")
-    if [ -s /etc/redhat-release ]; then
-      cat /etc/redhat-release
-    else
-      cat /etc/issue
-    fi
-    uname -a
-    ;;
-  "suse")
-    cat /etc/SuSE-release
-    ;;
-  "debian")
-    lsb_release -a
-    ;;
-  "gentoo")
-    cat /etc/gentoo-release
-    ;;
-  "arch")
-    cat /etc/os-release
-    ;;
-  "slackware")
-    cat /etc/slackware-version
-    ;;
-  *)
-    if [ -s /etc/issue ]; then
-      cat /etc/issue
-    else
-      echo "Error: Unknown distribution"
-      exit 1
-    fi
-    ;;
-  esac
-}
-
-# Automatically install the needed support files for this .bashrc file
-install_bashrc_support() {
-  local dtype
-  dtype=$(distribution)
-
-  case $dtype in
-  "redhat")
-    sudo yum install multitail tree zoxide trash-cli fzf bash-completion fastfetch
-    ;;
-  "suse")
-    sudo zypper install multitail tree zoxide trash-cli fzf bash-completion fastfetch
-    ;;
-  "debian")
-    sudo apt-get install multitail tree zoxide trash-cli fzf bash-completion
-    # Fetch the latest fastfetch release URL for linux-amd64 deb file
-    FASTFETCH_URL=$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | grep "browser_download_url.*linux-amd64.deb" | cut -d '"' -f 4)
-
-    # Download the latest fastfetch deb file
-    curl -sL $FASTFETCH_URL -o /tmp/fastfetch_latest_amd64.deb
-
-    # Install the downloaded deb file using apt-get
-    sudo apt-get install /tmp/fastfetch_latest_amd64.deb
-    ;;
-  "arch")
-    sudo paru multitail tree zoxide trash-cli fzf bash-completion fastfetch
-    ;;
-  "slackware")
-    echo "No install support for Slackware"
-    ;;
-  *)
-    echo "Unknown distribution"
-    ;;
-  esac
-}
-
-# IP address lookup
-alias whatismyip="whatsmyip"
-function whatsmyip() {
-  # Internal IP Lookup.
-  if command -v ip &>/dev/null; then
-    echo -n "Internal IP: "
-    ip addr show wlan0 | grep "inet " | awk '{print $2}' | cut -d/ -f1
-  else
-    echo -n "Internal IP: "
-    ifconfig wlan0 | grep "inet " | awk '{print $2}'
-  fi
-
-  # External IP Lookup
-  echo -n "External IP: "
-  curl -4 ifconfig.me
-}
-
-# View Apache logs
-apachelog() {
-  if [ -f /etc/httpd/conf/httpd.conf ]; then
-    cd /var/log/httpd && ls -xAh && multitail --no-repeat -c -s 2 /var/log/httpd/*_log
-  else
-    cd /var/log/apache2 && ls -xAh && multitail --no-repeat -c -s 2 /var/log/apache2/*.log
-  fi
-}
-
-# Edit the Apache configuration
-apacheconfig() {
-  if [ -f /etc/httpd/conf/httpd.conf ]; then
-    sedit /etc/httpd/conf/httpd.conf
-  elif [ -f /etc/apache2/apache2.conf ]; then
-    sedit /etc/apache2/apache2.conf
-  else
-    echo "Error: Apache config file could not be found."
-    echo "Searching for possible locations:"
-    sudo updatedb && locate httpd.conf && locate apache2.conf
-  fi
-}
-
-# Edit the PHP configuration file
-phpconfig() {
-  if [ -f /etc/php.ini ]; then
-    sedit /etc/php.ini
-  elif [ -f /etc/php/php.ini ]; then
-    sedit /etc/php/php.ini
-  elif [ -f /etc/php5/php.ini ]; then
-    sedit /etc/php5/php.ini
-  elif [ -f /usr/bin/php5/bin/php.ini ]; then
-    sedit /usr/bin/php5/bin/php.ini
-  elif [ -f /etc/php5/apache2/php.ini ]; then
-    sedit /etc/php5/apache2/php.ini
-  else
-    echo "Error: php.ini file could not be found."
-    echo "Searching for possible locations:"
-    sudo updatedb && locate php.ini
-  fi
-}
-
-# Edit the MySQL configuration file
-mysqlconfig() {
-  if [ -f /etc/my.cnf ]; then
-    sedit /etc/my.cnf
-  elif [ -f /etc/mysql/my.cnf ]; then
-    sedit /etc/mysql/my.cnf
-  elif [ -f /usr/local/etc/my.cnf ]; then
-    sedit /usr/local/etc/my.cnf
-  elif [ -f /usr/bin/mysql/my.cnf ]; then
-    sedit /usr/bin/mysql/my.cnf
-  elif [ -f ~/my.cnf ]; then
-    sedit ~/my.cnf
-  elif [ -f ~/.my.cnf ]; then
-    sedit ~/.my.cnf
-  else
-    echo "Error: my.cnf file could not be found."
-    echo "Searching for possible locations:"
-    sudo updatedb && locate my.cnf
-  fi
-}
-
-# Trim leading and trailing spaces (for scripts)
-trim() {
-  local var=$*
-  var="${var#"${var%%[![:space:]]*}"}" # remove leading whitespace characters
-  var="${var%"${var##*[![:space:]]}"}" # remove trailing whitespace characters
-  echo -n "$var"
-}
-# GitHub Titus Additions
-
-gcom() {
-  git add .
-  git commit -m "$1"
-}
-lazyg() {
-  git add .
-  git commit -m "$1"
-  git push
-}
-
-function hb {
-  if [ $# -eq 0 ]; then
-    echo "No file path specified."
-    return
-  elif [ ! -f "$1" ]; then
-    echo "File path does not exist."
-    return
-  fi
-
-  uri="http://bin.christitus.com/documents"
-  response=$(curl -s -X POST -d @"$1" "$uri")
-  if [ $? -eq 0 ]; then
-    hasteKey=$(echo $response | jq -r '.key')
-    echo "http://bin.christitus.com/$hasteKey"
-  else
-    echo "Failed to upload the document."
-  fi
-}
-
-#######################################################
-# Set the ultimate amazing command prompt
-#######################################################
-
+alias docker-clean='docker container prune -f; docker image prune -f; docker network prune -f; docker volume prune -f'
 alias hug="systemctl --user restart hugo"
 alias lanm="systemctl --user restart lan-mouse"
 
-# Check if the shell is interactive
-if [[ $- == *i* ]]; then
-  # Bind Ctrl+f to insert 'zi' followed by a newline
-  bind '"\C-f":"zi\n"'
+# cat'i bat olarak kullanmak için (eğer yüklüyse)
+if command -v bat &>/dev/null; then
+    alias cat='bat'
 fi
 
-export PATH=$PATH:"$HOME/.local/bin:$HOME/.cargo/bin:/var/lib/flatpak/exports/bin:/.local/share/flatpak/exports/bin"
+#######################################################
+# FONKSİYONLAR
+#######################################################
+# Not: Bash'te fonksiyonlar 'function name { ... }' bloğu ile tanımlanır.
+# Argümanlar '$argv' yerine '$@' (tümü), '$1', '$2' olarak alınır.
 
+# Arşiv çıkarma fonksiyonu
+function extract {
+    for archive in "$@"; do
+        if [ -f "$archive" ]; then
+            case "$archive" in
+                *.tar.bz2|*.tbz2)   tar xvjf "$archive"  ;;
+                *.tar.gz|*.tgz)     tar xvzf "$archive"  ;;
+                *.bz2)              bunzip2 "$archive"   ;;
+                *.rar)              unrar x "$archive"   ;;
+                *.gz)               gunzip "$archive"    ;;
+                *.tar)              tar xvf "$archive"   ;;
+                *.zip)              unzip "$archive"     ;;
+                *.Z)                uncompress "$archive" ;;
+                *.7z)               7z x "$archive"      ;;
+                *)                  echo "Bilinmeyen arşiv türü: '$archive'" ;;
+            esac
+        else
+            echo "'$archive' geçerli bir dosya değil!"
+        fi
+    done
+}
+
+# Dosya içinde metin arama
+function ftext {
+    grep -iIHrn --color=always "$1" . | less -r
+}
+
+# İlerleme çubuğu ile dosya kopyalama
+function cpp {
+    local total_size
+    total_size=$(stat -c '%s' "$1")
+    strace -q -ewrite cp -- "$1" "$2" 2>&1 |
+    awk -v total_size="$total_size" '{
+            count += $NF
+            if (count % 10 == 0) {
+                percent = count / total_size * 100
+                printf "%3d%% [", percent
+                for (i=0;i<=percent;i++) printf "="
+                printf ">"
+                for (i=percent;i<100;i++) printf " "
+                printf "]\r"
+            }
+        }
+        END { print "" }'
+}
+
+# Kopyala ve o dizine git
+function cpg {
+    if [ -d "$2" ]; then
+        cp "$1" "$2" && cd "$2"
+    else
+        cp "$1" "$2"
+    fi
+}
+
+# Taşı ve o dizine git
+function mvg {
+    if [ -d "$2" ]; then
+        mv "$1" "$2" && cd "$2"
+    else
+        mv "$1" "$2"
+    fi
+}
+
+# Dizin oluştur ve içine gir
+function mkdirg {
+    mkdir -p "$1" && cd "$1"
+}
+
+# Belirtilen sayıda yukarı dizine çık
+function up {
+    # ${1:-1} -> $1 varsa onu, yoksa 1'i kullanır
+    local limit=${1:-1}
+    local path=""
+    for i in $(seq 1 "$limit"); do
+        path="../$path"
+    done
+    cd "$path"
+}
+
+# cd komutundan sonra ls çalıştır
+function cd {
+    builtin cd "$@" && ls
+}
+
+# Çalışılan dizinin son iki bölümünü göster
+function pwdtail {
+    pwd | awk -F/ '{nlast = NF -1;print $nlast"/"$NF}'
+}
+
+# Linux dağıtımını bul
+function distribution {
+    local dtype="unknown"
+    if [ -r /etc/os-release ]; then
+        # 'source' yerine '. ' kullanmak daha güvenlidir
+        . /etc/os-release
+        case "$ID" in
+            fedora|rhel|centos)     dtype="redhat"  ;;
+            sles|"opensuse"*)       dtype="suse"    ;;
+            ubuntu|debian)          dtype="debian"  ;;
+            gentoo)                 dtype="gentoo"  ;;
+            arch|manjaro)           dtype="arch"    ;;
+            slackware)              dtype="slackware" ;;
+            *)
+                # Fish'teki 'set -q ID_LIKE' -> Bash'te '[ -n "$ID_LIKE" ]'
+                if [ -n "$ID_LIKE" ]; then
+                    case "$ID_LIKE" in
+                        *fedora*|*rhel*|*centos*)    dtype="redhat"  ;;
+                        *sles*|*opensuse*)           dtype="suse"    ;;
+                        *ubuntu*|*debian*)          dtype="debian"  ;;
+                        *gentoo*)                   dtype="gentoo"  ;;
+                        *arch*)                     dtype="arch"    ;;
+                        *slackware*)                dtype="slackware" ;;
+                    esac
+                fi
+                ;;
+        esac
+    fi
+    echo "$dtype"
+}
+
+# İşletim sistemi versiyonunu göster
+function ver {
+    local dtype
+    dtype=$(distribution)
+    case "$dtype" in
+        redhat)
+            if [ -s /etc/redhat-release ]; then
+                cat /etc/redhat-release
+            else
+                cat /etc/issue
+            fi
+            uname -a
+            ;;
+        suse)       cat /etc/SuSE-release ;;
+        debian)     lsb_release -a ;;
+        gentoo)     cat /etc/gentoo-release ;;
+        arch)       cat /etc/os-release ;;
+        slackware)  cat /etc/slackware-version ;;
+        *)
+            if [ -s /etc/issue ]; then
+                cat /etc/issue
+            else
+                echo "Hata: Bilinmeyen dağıtım"
+                return 1
+            fi
+            ;;
+    esac
+}
+
+# Gerekli destek dosyalarını kur
+function install_bashrc_support {
+    local dtype
+    dtype=$(distribution)
+    local FASTFETCH_URL
+    case "$dtype" in
+        redhat)     sudo yum install multitail tree zoxide trash-cli fzf fastfetch ;;
+        suse)       sudo zypper install multitail tree zoxide trash-cli fzf fastfetch ;;
+        debian)
+            sudo apt-get install multitail tree zoxide trash-cli fzf
+            FASTFETCH_URL=$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | grep "browser_download_url.*linux-amd64.deb" | cut -d '"' -f 4)
+            curl -sL "$FASTFETCH_URL" -o /tmp/fastfetch_latest_amd64.deb
+            sudo apt-get install /tmp/fastfetch_latest_amd64.deb
+            ;;
+        arch)       sudo paru -S multitail tree zoxide trash-cli fzf fastfetch ;;
+        slackware)  echo "Slackware için kurulum desteği yok" ;;
+        *)          echo "Bilinmeyen dağıtım" ;;
+    esac
+}
+
+# IP adresi bulma
+alias whatismyip='whatsmyip'
+function whatsmyip {
+    echo -n "Dahili IP: "
+    if command -v ip &>/dev/null; then
+        ip addr show wlan0 | grep "inet " | awk '{print $2}' | cut -d/ -f1
+    else
+        ifconfig wlan0 | grep "inet " | awk '{print $2}'
+    fi
+    
+    echo -n "Harici IP: "
+    curl -4 ifconfig.me
+}
+
+# GitHub Fonksiyonları
+function gcom {
+    git add .
+    git commit -m "$1"
+}
+
+function lazyg {
+    git add .
+    git commit -m "$1"
+    git push
+}
+
+# Hastebin'e yükleme
+function hb {
+    # Fish'teki 'count $argv -eq 0' -> Bash'te '$# -eq 0'
+    if [ $# -eq 0 ]; then
+        echo "Dosya yolu belirtilmedi."
+        return 1
+    fi
+    # Fish'teki 'not test -f' -> Bash'te '! -f'
+    if [ ! -f "$1" ]; then
+        echo "Dosya yolu mevcut değil."
+        return 1
+    end
+
+    local uri="http://bin.christitus.com/documents"
+    local response
+    response=$(curl -s -X POST -d @"$1" "$uri")
+    
+    # Fish'teki '$status' -> Bash'te '$?' (son komutun çıkış kodu)
+    if [ $? -eq 0 ]; then
+        local hasteKey
+        hasteKey=$(echo "$response" | jq -r '.key')
+        echo "http://bin.christitus.com/$hasteKey"
+    else
+        echo "Belge yüklenemedi."
+    fi
+}
+
+#######################################################
+# SON AYARLAMALAR VE ENTEGRASYONLAR
+#######################################################
+
+# Ctrl+f için özel tuş ataması
+# 'zi' yazıp enter'a basar (zoxide interactive)
+#
+# !! UYARI !!: Bash'te Ctrl+F varsayılan olarak 'imleci bir karakter ileri'
+# taşır. Bu atama, bu davranışı ezecektir.
+# Eğer bu davranışı korumak istiyorsanız, başka bir tuş kombinasyonu
+# (örneğin Alt+F, '\e[f' veya '\ef') kullanmayı düşünün.
+bind '"\C-f": "zi\n"'
+
+# Starship'i başlat
 eval "$(starship init bash)"
-eval "$(zoxide init bash)"
 
-if [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]]; then
+# Zoxide'ı başlat
+#
+# NOT: Fish yapılandırmanızda 'z' ve 'zi' komutlarını 'ls'
+# çalıştıracak şekilde manuel olarak sarmalamışsınız.
+# Bash (ve zoxide) için bunun doğru yolu '--hook ls' bayrağını
+# kullanmaktır. Aşağıdaki komut, hem zoxide'ı başlatır
+# hem de 'z' veya 'zi' kullandıktan sonra otomatik 'ls'
+# çalıştırılmasını sağlar. (Source 47-49'daki kod bloklarının
+# yerine geçer).
+eval "$(zoxide init bash --hook ls)"
 
-  exec startx
-
+# TTY1'de isek ve DISPLAY yoksa, grafik arayüzü başlat
+#
+# NOT: Bu kod bloğu ~/.bashrc yerine ~/.bash_profile veya ~/.profile
+# dosyasına ait olmalıdır. ~/.bashrc, her yeni terminal
+# açıldığında çalışır, bu da istenmeyen 'startx' denemelerine
+NAMESPACE:
+# yol açabilir.
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+    exec startx
 fi
-
-# Android SDK ayarları (AUR uyumlu)
-export ANDROID_HOME="/opt/android-sdk"
-export ANDROID_SDK_ROOT="/opt/android-sdk"
-export ANDROID_AVD_HOME="$HOME/.android/avd"
-
-# Path ayarları
-export PATH=$PATH:$ANDROID_HOME/platform-tools
-export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
-export PATH=$PATH:$ANDROID_HOME/emulator
-export PATH=$PATH:$ANDROID_HOME/tools/bin
-
-# Flutter path
-export PATH=$PATH:/opt/flutter/bin
-
-# Pub cache
-export PUB_CACHE="$HOME/.pub-cache"
